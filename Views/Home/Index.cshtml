@@ -1,0 +1,201 @@
+﻿@model Core.Models.IndexViewModel;
+@{
+    ViewData["Title"] = "Home";
+}
+
+<script src="~/lib/data-tables/js/jquery.dataTables.min.js"></script>
+<script src="~/js/home-index-script.js"></script>
+
+<link rel="stylesheet" href="~/lib/data-tables/css/jquery.dataTables.min.css" />
+<style>
+    #order-table_length {
+        display: none;
+    }
+    #order-table_filter {
+        text-align: left;
+        margin-top: 10px;
+    }
+    #order-table_filter i {
+        cursor: pointer;
+        margin: 10px 0 0 20px;
+        float: right;
+    }
+    #order-table_filter label input {
+        padding: 0px;
+        height: 1.9rem;
+        margin: 0;
+    }
+    #order-table,
+    #order-table th,
+    #order-table td {
+        border-radius: 0px;
+    }
+    #order-table tbody tr {
+        cursor: pointer;
+    }
+    #order-title {
+        display: inline-block;
+        margin-bottom: -60px;
+        float: left;
+        margin-top: 15px;
+    }
+    #order-table_filter label {
+        float: right;
+    }
+    i.medium {
+        font-size: 2.5rem;
+        z-index: 1000;
+    }
+    .modal-content {
+        border: 0px solid;
+        border-radius: 0;
+        box-shadow: none;
+    }
+    label.task {
+        text-decoration: none !important;
+    }
+    table.dataTable thead .sorting {
+        background-image: none!important;
+    }
+    a.material-icons.tiny-box {
+        font-size: 1.2em;
+    }
+</style>
+
+<div class="col s12">
+    <div id="order-title">
+        <h4 class="zero-margin deep-orange-text">PIZZA PALACE</h4>
+    </div>
+    <table id="order-table" class="responsive-table display stripped" cellspacing="0">
+        <thead class="deep-orange white-text">
+            <tr>
+                <th>ORDER</th>
+                <th>DATE</th>
+                <th>PIZZA</th>
+                <th>TOPPINGS</th>
+                <th>SUBTOTAL</th>
+                <th>GST</th>
+                <th>TOTAL</th>
+                <th>DESCRIPTION</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </tfoot>
+        <tbody>
+            @foreach (var order in Model.Orders){
+            <tr>
+                <td>@order.Order.Id.ToString().PadLeft(4, '0')</td>
+                <td>@order.Order.Date.ToString("dd/MM/yyyy")</td>
+                <td>@order.Pizza</td>
+                <td>@order.Topping</td>
+                <td>@string.Format("{0:N}", order.Order.SubTotal)</td>
+                <td>@string.Format("{0:N}", order.Order.GST)</td>
+                <td>@string.Format("{0:N}", order.Order.Total)</td>
+                <td>@order.Order.Narration</td>
+                <td><a class='material-icons tiny-box red-text'>delete_forever</a></td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div id="add-order-modal" class="modal modal-fixed-footer" style="width: 800px; min-height: 580px;">
+    <div class="modal-content">
+        <h4>Add Order</h4>
+        <p>Specify the below Parameters for the Order</p>
+        <div>
+            <div class="input-field col-md-6">
+                <i class="material-icons prefix">local_pizza</i>
+                @Html.DropDownListFor(model => model.Pizza.Id, Model.Pizzas)
+                <label style="padding-left:20px;">Pizza</label>
+            </div>
+
+            <div class="input-field col-md-6">
+                <i class="material-icons prefix">class</i>
+                <input id="Pizza_Price" type="text" disabled>
+                <label style="padding-left:20px;">Price (USD)</label>
+            </div>
+
+            <div class="col-md-6">
+                <ul id="task-card" class="collection with-header basic-toppings">
+                    <li class="collection-header deep-orange accent-2">
+                        <h4 class="task-card-title">Basic Toppings</h4>
+                    </li>
+
+                    @foreach (var toppings in Model.BasicToppings) {
+                        <li class="collection-item dismissable" data-idnt="@(toppings.Id)" data-name="@(toppings.Name)" data-small="@(toppings.Small)" data-medium="@(toppings.Medium)" data-large="@(toppings.Large)" style="touch-action: pan-y; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+                            <input type="checkbox" id="task@(toppings.Id)">
+                            <label class="task" for="task@(toppings.Id)">
+                                @toppings.Name
+                                <a class="secondary-content">
+                                    <span class="ultra-small">$@(toppings.Small)</span>
+                                </a>
+                            </label>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="col-md-6">
+                <ul id="task-card" class="collection with-header deluxe-toppings">
+                    <li class="collection-header teal accent-4">
+                        <h4 class="task-card-title">Deluxe Toppings</h4>
+                    </li>
+
+                    @foreach (var toppings in Model.DeluxeToppings) {
+                        <li class="collection-item dismissable" data-idnt="@(toppings.Id)" data-name="@(toppings.Name)" data-small="@(toppings.Small)" data-medium="@(toppings.Medium)" data-large="@(toppings.Large)" style="touch-action: pan-y; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+                            <input type="checkbox" id="task-@(toppings.Id)">
+                            <label class="task" for="task-@(toppings.Id)">
+                                @toppings.Name
+                                <a class="secondary-content">
+                                    <span class="ultra-small">$@(toppings.Small)</span>
+                                </a>
+                            </label>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <a class="btn btn-add waves-effect waves-light gradient-45deg-light-blue-cyan right" style="margin-right:15px">Add Order</a>
+
+            <table id="tbl-new-order" class="striped bordered">
+                <thead>
+                    <tr>
+                        <th>Pizza</th>
+                        <th>Toppings</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+
+                <tfoot>
+                    <tr>
+                        <th colspan="2">TOTALS</th>
+                        <th>$0.00</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            @using (Html.BeginForm("SaveOrder", "Home", FormMethod.Post)){
+                @Html.HiddenFor(model => model.Json)
+            }
+
+            <a class="btn btn-save waves-effect waves-light gradient-45deg-purple-deep-orange right">SAVE ORDER</a>
+        </div>
+    </div>
+
+
+</div>
